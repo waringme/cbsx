@@ -169,7 +169,7 @@ async function loadEager(doc) {
   if (main) {
     decorateMain(main);
     // wait for atjs to finish loading
-    await atjsPromise;
+  //  await atjsPromise;
     // break up possible long tasks before showing the LCP block to reduce TBT
     await new Promise((resolve) => {
       window.setTimeout(async () => {
