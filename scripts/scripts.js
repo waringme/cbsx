@@ -147,8 +147,8 @@ async function getAndApplyOffers() {
 }
 
 let atjsPromise = Promise.resolve();
-if (getMetadata('Target')) {
-  atjsPromise = initATJS('./at.js', {
+//if (getMetadata('Target')) {
+  atjsPromise = initATJS('./at.fix.min.js', {
     clientCode: 'adobeinternalags487',
     serverDomain: 'adobeinternalags487.tt.omtrdc.net',
     imsOrgId: '08FEAA655767BEDB7F000101@AdobeOrg',
@@ -160,7 +160,7 @@ if (getMetadata('Target')) {
     withWebGLRenderer: false,
   });
   document.addEventListener('at-library-loaded', () => getAndApplyOffers());
-}
+//}
 
 /**
  * Loads everything needed to get to LCP.
