@@ -146,7 +146,7 @@ async function getAndApplyOffers() {
 }
 
 let atjsPromise = Promise.resolve();
-if (getMetadata('target')) {
+if (getMetadata('Target')) {
   atjsPromise = initATJS('./at.js', {
     clientCode: 'adobeinternalags487',
     serverDomain: 'adobeinternalags487.tt.omtrdc.net',
