@@ -10,6 +10,7 @@ import {
   loadSection,
   loadSections,
   loadCSS,
+  getMetadata
 } from './aem.js';
 
 /**
@@ -147,7 +148,11 @@ async function getAndApplyOffers() {
 }
 
 let atjsPromise = Promise.resolve();
-//if (getMetadata('Target')) {
+console.log('Title metadata found: ' + getMetadata('Title'));
+console.log('URL metadata found: ' + getMetadata('url'));
+if (getMetadata('target')) {
+  console.log('Target metadata found: ' + getMetadata('target'));
+
   atjsPromise = initATJS('./at.fix.min.js', {
     clientCode: 'adobeinternalags487',
     serverDomain: 'adobeinternalags487.tt.omtrdc.net',
@@ -160,7 +165,7 @@ let atjsPromise = Promise.resolve();
     withWebGLRenderer: false,
   });
   document.addEventListener('at-library-loaded', () => getAndApplyOffers());
-//}
+}
 
 /**
  * Loads everything needed to get to LCP.
