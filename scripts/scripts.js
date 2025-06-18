@@ -148,7 +148,7 @@ async function getAndApplyOffers() {
 }
 
 let atjsPromise = Promise.resolve();
-console.log('Title metadata found: ' + getMetadata('itle'));
+console.log('Title metadata found: ' + getMetadata('title'));
 console.log('URL metadata found: ' + getMetadata('url'));
 if (getMetadata('target')) {
   console.log('Target metadata found: ' + getMetadata('target'));
