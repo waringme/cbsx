@@ -1,0 +1,84 @@
+{
+  "data": {
+    "offerBankByPath": {
+      "item": {
+        "_path": "/content/dam/frescopa/en/offers/new-saver",
+        "_id": "ee63f489-9350-4f40-ade7-ef47084ba14f",
+        "_variation": "master",
+        "title": "The FutureSaver Account – Watch Your Savings Bloom",
+        "detail": {
+          "html": "<p>Step into a smarter way to save. The FutureSaver Account offers competitive interest rates, zero monthly fees, and the flexibility to access your money when you need it. Whether you’re building an emergency fund or planning for something big, your financial goals just found their new best friend.</p>",
+          "markdown": "Step into a smarter way to save. The FutureSaver Account offers competitive interest rates, zero monthly fees, and the flexibility to access your money when you need it. Whether you're building an emergency fund or planning for something big, your financial goals just found their new best friend.\n",
+          "plaintext": "Step into a smarter way to save. The FutureSaver Account offers competitive interest rates, zero monthly fees, and the flexibility to access your money when you need it. Whether you’re building an emergency fund or planning for something big, your financial goals just found their new best friend.",
+          "json": [
+            {
+              "nodeType": "paragraph",
+              "content": [
+                {
+                  "nodeType": "text",
+                  "value": "Step into a smarter way to save. The FutureSaver Account offers competitive interest rates, zero monthly fees, and the flexibility to access your money when you need it. Whether you’re building an emergency fund or planning for something big, your financial goals just found their new best friend."
+                }
+              ]
+            }
+          ]
+        },
+        "image": {
+          "_id": "11485b27-125e-4b31-9781-f931bf0ee689",
+          "type": "image",
+          "_path": "/content/dam/cbsx/images/banner_3.png",
+          "_authorUrl": "https://author-p147324-e1509924.adobeaemcloud.com/content/dam/cbsx/images/banner_3.png",
+          "_publishUrl": "https://publish-p147324-e1509924.adobeaemcloud.com/content/dam/cbsx/images/banner_3.png",
+          "title": "",
+          "description": "",
+          "width": 1920,
+          "height": 700,
+          "mimeType": "image/png",
+          "_dynamicUrl": "/adobe/dynamicmedia/deliver/dm-aid--11485b27-125e-4b31-9781-f931bf0ee689/banner_3.jpg"
+        },
+        "cta": "Open your FutureSaver Account today",
+        "ctaLink": "https://coventrybuildingsociety.co.uk/member/savings/all-savings.html",
+        "_metadata": {
+          "stringMetadata": [
+            { "name": "title", "value": "New Saver" },
+            { "name": "description", "value": "" },
+            { "name": "cq:lastReplicationAction", "value": "Activate" }
+          ],
+          "stringArrayMetadata": [],
+          "intMetadata": [],
+          "intArrayMetadata": [],
+          "floatMetadata": [],
+          "floatArrayMetadata": [],
+          "booleanMetadata": [],
+          "booleanArrayMetadata": [],
+          "calendarMetadata": [
+            { "name": "jcr:created", "value": "2025-06-18T11:07:59.477Z" },
+            { "name": "cq:lastPublished", "value": "2025-06-18T11:13:15.808Z" },
+            { "name": "cq:lastModified", "value": "2025-06-18T11:12:53.030Z" }
+          ],
+          "calendarArrayMetadata": []
+        },
+        "_variations": [],
+        "_model": {
+          "_path": "/conf/frescopa/settings/dam/cfm/models/offer-bank",
+          "title": "Offer-Bank"
+        },
+        "_tags": []
+      },
+      "_references": [
+        {
+          "_id": "11485b27-125e-4b31-9781-f931bf0ee689",
+          "type": "image",
+          "_path": "/content/dam/cbsx/images/banner_3.png",
+          "_authorUrl": "https://author-p147324-e1509924.adobeaemcloud.com/content/dam/cbsx/images/banner_3.png",
+          "_publishUrl": "https://publish-p147324-e1509924.adobeaemcloud.com/content/dam/cbsx/images/banner_3.png",
+          "title": "",
+          "description": "",
+          "width": 1920,
+          "height": 700,
+          "mimeType": "image/png",
+          "_dynamicUrl": "/adobe/dynamicmedia/deliver/dm-aid--11485b27-125e-4b31-9781-f931bf0ee689/banner_3.jpg"
+        }
+      ]
+    }
+  }
+}
