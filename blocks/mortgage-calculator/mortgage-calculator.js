@@ -120,6 +120,7 @@ export default function decorate(block) {
 class MortgageCalculator {
   constructor() {
     this.graphqlEndpoint = 'https://publish-p147324-e1509924.adobeaemcloud.com/graphql/execute.json/global/mortgageFixed';
+    this.selectedMortgageOption = null; // Track selected mortgage option
     this.init();
   }
 
@@ -316,6 +317,14 @@ class MortgageCalculator {
       // Debug logging
       console.log('API Response:', data);
       console.log('Request URL:', url);
+      console.log('Response structure:', {
+        hasData: !!data,
+        hasDataWrapper: !!(data && data.data),
+        hasMortgageOfferList: !!(data && data.data && data.data.mortgageOfferList),
+        hasItems: !!(data && data.data && data.data.mortgageOfferList && data.data.mortgageOfferList.items),
+        itemsCount: data && data.data && data.data.mortgageOfferList && data.data.mortgageOfferList.items ? data.data.mortgageOfferList.items.length : 0,
+        sampleItem: data && data.data && data.data.mortgageOfferList && data.data.mortgageOfferList.items && data.data.mortgageOfferList.items[0] ? data.data.mortgageOfferList.items[0] : null
+      });
       
       // Process and return mortgage options
       return this.processMortgageOptions(data, ltv);
@@ -328,33 +337,102 @@ class MortgageCalculator {
   }
 
   processMortgageOptions(data, ltv) {
-    // Process the response data from GET request
-    if (data && data.mortgageOptions) {
-      return data.mortgageOptions.filter(option => {
+    console.log('Processing mortgage options with data:', data);
+    
+    let mortgageOptions = [];
+    
+    // Handle the nested data structure from GraphQL response
+    if (data && data.data && data.data.mortgageOfferList && data.data.mortgageOfferList.items) {
+      console.log('Found data.mortgageOfferList.items:', data.data.mortgageOfferList.items);
+      
+      mortgageOptions = data.data.mortgageOfferList.items.filter(option => {
         // Filter options based on LTV requirements
-        const maxLTV = parseFloat(option.maxLoanToValue.replace('%', ''));
-        return ltv <= maxLTV;
+        if (option.maxLoanToValue) {
+          const maxLTV = parseFloat(option.maxLoanToValue.replace('%', ''));
+          return ltv <= maxLTV;
+        }
+        return true; // Include if no LTV restriction
       }).sort((a, b) => {
         // Sort by interest rate (lowest first)
-        const rateA = parseFloat(a.interestRate.replace('%', ''));
-        const rateB = parseFloat(b.interestRate.replace('%', ''));
-        return rateA - rateB;
+        if (a.interestRate && b.interestRate) {
+          const rateA = parseFloat(a.interestRate.replace('%', ''));
+          const rateB = parseFloat(b.interestRate.replace('%', ''));
+          return rateA - rateB;
+        }
+        return 0;
+      });
+    } else if (data && data.mortgageOfferList && data.mortgageOfferList.items) {
+      // Handle direct mortgageOfferList.items structure
+      console.log('Found mortgageOfferList.items:', data.mortgageOfferList.items);
+      
+      mortgageOptions = data.mortgageOfferList.items.filter(option => {
+        if (option.maxLoanToValue) {
+          const maxLTV = parseFloat(option.maxLoanToValue.replace('%', ''));
+          return ltv <= maxLTV;
+        }
+        return true;
+      }).sort((a, b) => {
+        if (a.interestRate && b.interestRate) {
+          const rateA = parseFloat(a.interestRate.replace('%', ''));
+          const rateB = parseFloat(b.interestRate.replace('%', ''));
+          return rateA - rateB;
+        }
+        return 0;
+      });
+    } else if (data && data.mortgageOptions) {
+      // Handle alternative structure
+      console.log('Found mortgageOptions:', data.mortgageOptions);
+      
+      mortgageOptions = data.mortgageOptions.filter(option => {
+        if (option.maxLoanToValue) {
+          const maxLTV = parseFloat(option.maxLoanToValue.replace('%', ''));
+          return ltv <= maxLTV;
+        }
+        return true;
+      }).sort((a, b) => {
+        if (a.interestRate && b.interestRate) {
+          const rateA = parseFloat(a.interestRate.replace('%', ''));
+          const rateB = parseFloat(b.interestRate.replace('%', ''));
+          return rateA - rateB;
+        }
+        return 0;
       });
     } else if (data && Array.isArray(data)) {
       // Handle case where response is directly an array
-      return data.filter(option => {
-        const maxLTV = parseFloat(option.maxLoanToValue.replace('%', ''));
-        return ltv <= maxLTV;
+      console.log('Found direct array response:', data);
+      
+      mortgageOptions = data.filter(option => {
+        if (option.maxLoanToValue) {
+          const maxLTV = parseFloat(option.maxLoanToValue.replace('%', ''));
+          return ltv <= maxLTV;
+        }
+        return true;
       }).sort((a, b) => {
-        const rateA = parseFloat(a.interestRate.replace('%', ''));
-        const rateB = parseFloat(b.interestRate.replace('%', ''));
-        return rateA - rateB;
+        if (a.interestRate && b.interestRate) {
+          const rateA = parseFloat(a.interestRate.replace('%', ''));
+          const rateB = parseFloat(b.interestRate.replace('%', ''));
+          return rateA - rateB;
+        }
+        return 0;
       });
     }
     
-    // Return fallback options if no data or unexpected format
-    console.log('No mortgage options found in response, using fallback options');
-    return this.getFallbackMortgageOptions(ltv);
+    // If we found mortgage options, automatically select the first one as default
+    if (mortgageOptions && mortgageOptions.length > 0) {
+      const firstOption = mortgageOptions[0];
+      this.selectedMortgageOption = firstOption;
+      console.log(`Auto-selected first mortgage option as default: ${firstOption.title} with rate ${firstOption.interestRate}`);
+    } else {
+      // Return fallback options if no data or unexpected format
+      console.log('No mortgage options found in response, using fallback options');
+      console.log('Available data keys:', data ? Object.keys(data) : 'No data');
+      if (data && data.data) {
+        console.log('Data.data keys:', Object.keys(data.data));
+      }
+      mortgageOptions = this.getFallbackMortgageOptions(ltv);
+    }
+    
+    return mortgageOptions;
   }
 
   getFallbackMortgageOptions(ltv) {
@@ -418,8 +496,20 @@ class MortgageCalculator {
   }
 
   calculateBasicMortgage(mortgageAmount, mortgageTerm) {
-    // Basic mortgage calculation (simplified)
-    const annualRate = 0.0485; // Using 4.85% as example
+    // Use the selected mortgage option's interest rate, or fallback to a default rate
+    let annualRate;
+    
+    if (this.selectedMortgageOption && this.selectedMortgageOption.interestRate) {
+      // Extract the numeric rate from the interestRate string (e.g., "4.85%" -> 0.0485)
+      const rateString = this.selectedMortgageOption.interestRate.replace('%', '');
+      annualRate = parseFloat(rateString) / 100;
+      console.log(`Using selected mortgage rate: ${this.selectedMortgageOption.interestRate} (${annualRate})`);
+    } else {
+      // Fallback to default rate if no option selected
+      annualRate = 0.0485; // 4.85% as fallback
+      console.log('No mortgage option selected, using fallback rate: 4.85%');
+    }
+    
     const monthlyRate = annualRate / 12;
     const totalPayments = mortgageTerm * 12;
     
@@ -434,7 +524,8 @@ class MortgageCalculator {
     return {
       monthlyPayment: monthlyPayment,
       totalInterest: totalInterest,
-      totalAmount: totalAmount
+      totalAmount: totalAmount,
+      rateUsed: this.selectedMortgageOption ? this.selectedMortgageOption.interestRate : '4.85% (fallback)'
     };
   }
 
@@ -444,8 +535,19 @@ class MortgageCalculator {
     document.getElementById('total-interest').textContent = `£${calculations.totalInterest.toFixed(2)}`;
     document.getElementById('total-amount').textContent = `£${calculations.totalAmount.toFixed(2)}`;
     
+    // Add rate information to the results
+    const resultsHeader = document.querySelector('.results-header h4');
+    if (resultsHeader && calculations.rateUsed) {
+      resultsHeader.innerHTML = `Your mortgage calculation <small style="font-size: 14px; color: #666; font-weight: normal;">(Rate: ${calculations.rateUsed})</small>`;
+    }
+    
     // Display mortgage options
     this.displayMortgageOptions(mortgageOptions);
+    
+    // Highlight the first option as selected by default
+    if (mortgageOptions && mortgageOptions.length > 0 && this.selectedMortgageOption) {
+      this.highlightSelectedOption(this.selectedMortgageOption.id || this.selectedMortgageOption.title || 'unknown');
+    }
     
     // Show results section
     document.getElementById('calculator-results').style.display = 'block';
@@ -463,8 +565,16 @@ class MortgageCalculator {
     
     optionsGrid.innerHTML = '';
     
-    options.forEach(option => {
+    options.forEach((option, index) => {
       const optionElement = this.createMortgageOptionElement(option);
+      
+      // If this is the first option and it's the selected one, add selected class
+      if (index === 0 && this.selectedMortgageOption && 
+          (this.selectedMortgageOption.id === option.id || 
+           this.selectedMortgageOption.title === option.title)) {
+        optionElement.classList.add('selected-option');
+      }
+      
       optionsGrid.appendChild(optionElement);
     });
   }
@@ -472,68 +582,76 @@ class MortgageCalculator {
   createMortgageOptionElement(option) {
     const optionDiv = document.createElement('div');
     optionDiv.className = 'mortgage-option';
+    optionDiv.dataset.optionId = option.id || option.title || 'unknown'; // Add data attribute for easy selection
+    
+    // Safely extract values with fallbacks
+    const title = option.title || option.name || 'Mortgage Option';
+    const interestRate = option.interestRate || option.rate || 'N/A';
+    const rateType = option.rateType || 'Fixed';
+    const ratePeriod = option.ratePeriod || option.period || 'N/A';
+    const followOnRate = option.followOnRate || option.followOn || 'N/A';
+    const aprc = option.aprc || option.aprcRate || 'N/A';
+    const productFee = option.productFee || option.fee || 'N/A';
+    const maxLoanToValue = option.maxLoanToValue || option.maxLTV || 'N/A';
+    const earlyRepaymentCharge = option.earlyRepaymentCharge || option.erc || 'Yes';
+    const ctaText = option.ctaText || option.cta || 'How to apply';
+    const ctaLink = option.ctaLink || option.link || '#';
     
     optionDiv.innerHTML = `
       <div class="option-header">
-        <h6 class="option-title">${option.title}</h6>
+        <h6 class="option-title">${title}</h6>
         <div class="option-rate">
-          <span class="rate-percentage">${option.interestRate}</span>
-          <div class="rate-type">${option.rateType}</div>
+          <span class="rate-percentage">${interestRate}</span>
+          <div class="rate-type">${rateType}</div>
         </div>
       </div>
       
       <div class="option-details">
         <div class="detail-item">
           <span class="detail-label">Rate</span>
-          <span class="detail-value">${option.interestRate} ${option.ratePeriod}</span>
+          <span class="detail-value">${interestRate} ${ratePeriod}</span>
         </div>
         <div class="detail-item">
           <span class="detail-label">Followed by</span>
-          <span class="detail-value">${option.followOnRate}</span>
+          <span class="detail-value">${followOnRate}</span>
         </div>
         <div class="detail-item">
           <span class="detail-label">APRC</span>
-          <span class="detail-value">${option.aprc}</span>
+          <span class="detail-value">${aprc}</span>
         </div>
         <div class="detail-item">
           <span class="detail-label">Product fee</span>
-          <span class="detail-value">${option.productFee}</span>
+          <span class="detail-value">${productFee}</span>
         </div>
         <div class="detail-item">
           <span class="detail-label">Max loan to value</span>
-          <span class="detail-value">${option.maxLoanToValue}</span>
+          <span class="detail-value">${maxLoanToValue}</span>
         </div>
         <div class="detail-item">
           <span class="detail-label">Early repayment charge</span>
-          <span class="detail-value">${option.earlyRepaymentCharge}</span>
+          <span class="detail-value">${earlyRepaymentCharge}</span>
         </div>
       </div>
       
       <div class="option-actions">
-        <button class="option-btn calculate-option-btn" onclick="mortgageCalculator.calculateSpecificOption('${option.id}')">
-          Calculate monthly payment
-        </button>
-        <a href="${option.ctaLink}" class="option-btn apply-option-btn">
-          ${option.ctaText}
+        <a href="${ctaLink}" class="option-btn apply-option-btn">
+          ${ctaText}
         </a>
       </div>
     `;
     
+    // Add click event listener to the entire mortgage option box
+    optionDiv.addEventListener('click', (e) => {
+      // Don't trigger if clicking on links
+      if (e.target.closest('a')) {
+        return;
+      }
+      
+      // Select this mortgage option
+      this.selectMortgageOption(option.id || option.title || 'unknown', option);
+    });
+    
     return optionDiv;
-  }
-
-  calculateSpecificOption(optionId) {
-    // Calculate specific mortgage option
-    const mortgageAmountInput = document.getElementById('mortgage-amount');
-    const mortgageTermInput = document.getElementById('mortgage-term');
-    
-    const mortgageAmount = parseFloat(mortgageAmountInput.value.replace(/[^\d.]/g, '')) || 0;
-    const mortgageTerm = parseInt(mortgageTermInput.value.replace(/[^\d]/g, '')) || 0;
-    
-    if (mortgageAmount && mortgageTerm) {
-      // This could call a more specific calculation API
-      alert(`Calculating specific mortgage option: ${optionId}\n\nFor a more detailed calculation, please use the main calculator above.`);
-    }
   }
 
   showLoading(show) {
@@ -576,6 +694,92 @@ class MortgageCalculator {
     const resultsDiv = document.getElementById('calculator-results');
     if (resultsDiv) {
       resultsDiv.style.display = 'none';
+    }
+  }
+
+  selectMortgageOption(optionId, optionData) {
+    console.log('selectMortgageOption called with:', { optionId, optionData });
+    
+    // Store the selected mortgage option
+    this.selectedMortgageOption = optionData;
+    console.log('Selected mortgage option stored:', this.selectedMortgageOption);
+    
+    // Get current input values
+    const mortgageAmountInput = document.getElementById('mortgage-amount');
+    const mortgageTermInput = document.getElementById('mortgage-term');
+    
+    const mortgageAmount = parseFloat(mortgageAmountInput.value.replace(/[^\d.]/g, '')) || 0;
+    const mortgageTerm = parseInt(mortgageTermInput.value.replace(/[^\d]/g, '')) || 0;
+    
+    console.log('Current values:', { mortgageAmount, mortgageTerm });
+    
+    if (mortgageAmount && mortgageTerm) {
+      // Recalculate with the selected rate
+      const calculations = this.calculateBasicMortgage(mortgageAmount, mortgageTerm);
+      console.log('New calculations:', calculations);
+      
+      // Update the results display
+      this.updateCalculationResults(calculations);
+      
+      // Highlight the selected option
+      this.highlightSelectedOption(optionId);
+      
+      console.log(`Selected mortgage option: ${optionData.title} with rate ${optionData.interestRate}`);
+    } else {
+      alert('Please enter mortgage amount and term first, then select a mortgage option.');
+    }
+  }
+
+  updateCalculationResults(calculations) {
+    console.log('updateCalculationResults called with:', calculations);
+    
+    // Update summary values
+    const monthlyPaymentEl = document.getElementById('monthly-payment');
+    const totalInterestEl = document.getElementById('total-interest');
+    const totalAmountEl = document.getElementById('total-amount');
+    
+    if (monthlyPaymentEl) {
+      monthlyPaymentEl.textContent = `£${calculations.monthlyPayment.toFixed(2)}`;
+      console.log('Updated monthly payment:', monthlyPaymentEl.textContent);
+    } else {
+      console.error('monthly-payment element not found');
+    }
+    
+    if (totalInterestEl) {
+      totalInterestEl.textContent = `£${calculations.totalInterest.toFixed(2)}`;
+      console.log('Updated total interest:', totalInterestEl.textContent);
+    } else {
+      console.error('total-interest element not found');
+    }
+    
+    if (totalAmountEl) {
+      totalAmountEl.textContent = `£${calculations.totalAmount.toFixed(2)}`;
+      console.log('Updated total amount:', totalAmountEl.textContent);
+    } else {
+      console.error('total-amount element not found');
+    }
+    
+    // Update rate information in the results header
+    const resultsHeader = document.querySelector('.results-header h4');
+    if (resultsHeader && calculations.rateUsed) {
+      resultsHeader.innerHTML = `Your mortgage calculation <small style="font-size: 14px; color: #666; font-weight: normal;">(Rate: ${calculations.rateUsed})</small>`;
+      console.log('Updated results header with rate:', calculations.rateUsed);
+    } else {
+      console.error('Results header not found or no rate used');
+    }
+  }
+
+  highlightSelectedOption(optionId) {
+    // Remove highlight from all options
+    const allOptions = document.querySelectorAll('.mortgage-option');
+    allOptions.forEach(option => {
+      option.classList.remove('selected-option');
+    });
+    
+    // Highlight the selected option
+    const selectedOption = document.querySelector(`[data-option-id="${optionId}"]`).closest('.mortgage-option');
+    if (selectedOption) {
+      selectedOption.classList.add('selected-option');
     }
   }
 }
