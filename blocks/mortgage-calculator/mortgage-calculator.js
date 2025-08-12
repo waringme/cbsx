@@ -3,6 +3,120 @@
  * Calls GraphQL endpoint to get mortgage options and calculates payments
  */
 
+function getMetadata(name) {
+  const attr = name && name.includes(':') ? 'property' : 'name';
+  const meta = [...document.querySelectorAll(`meta[${attr}="${name}"]`)]
+    .map((m) => m.content)
+    .join(', ');
+  return meta || '';
+}
+
+export default function decorate(block) {
+  // Render the mortgage calculator HTML structure
+  const calculatorHTML = `
+    <div class="calculator-container">
+      <div class="calculator-header">
+        <h3>Mortgage calculator</h3>
+        <p>Calculate your monthly mortgage payments and find the right deal for you</p>
+      </div>
+      
+      <div class="calculator-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="property-value">Property value</label>
+            <div class="input-wrapper">
+              <span class="currency-symbol">£</span>
+              <input type="text" id="property-value" placeholder="e.g. 250,000" inputmode="numeric">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="mortgage-amount">Mortgage amount</label>
+            <div class="input-wrapper">
+              <span class="currency-symbol">£</span>
+              <input type="text" id="mortgage-amount" placeholder="e.g. 200,000" inputmode="numeric">
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="mortgage-term">Mortgage term (1-40 years)</label>
+            <div class="input-wrapper">
+              <input type="number" id="mortgage-term" placeholder="25" min="1" max="40">
+              <span class="unit">Years</span>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="deposit-amount">Deposit amount</label>
+            <div class="input-wrapper">
+              <span class="currency-symbol">£</span>
+              <input type="text" id="deposit-amount" placeholder="0" readonly>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-actions">
+          <button type="button" class="calculate-btn" id="calculate-mortgage">
+            <span class="btn-text">Calculate monthly payment</span>
+            <span class="btn-loading" style="display: none;">
+              <svg class="spinner" viewBox="0 0 50 50">
+                <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+              </svg>
+              Calculating...
+            </span>
+          </button>
+        </div>
+      </div>
+      
+      <div class="calculator-results" id="calculator-results" style="display: none;">
+        <div class="results-header">
+          <h4>Your mortgage calculation</h4>
+          <button type="button" class="close-results" id="close-results">×</button>
+        </div>
+        
+        <div class="results-summary">
+          <div class="summary-item">
+            <span class="label">Monthly payment:</span>
+            <span class="value" id="monthly-payment">-</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Total interest:</span>
+            <span class="value" id="total-interest">-</span>
+          </div>
+          <div class="summary-item">
+            <span class="label">Total amount payable:</span>
+            <span class="value" id="total-amount">-</span>
+          </div>
+        </div>
+        
+        <div class="mortgage-options" id="mortgage-options">
+          <h5>Available mortgage options</h5>
+          <div class="options-grid" id="options-grid">
+            <!-- Mortgage options will be populated here -->
+          </div>
+        </div>
+      </div>
+      
+      <div class="calculator-error" id="calculator-error" style="display: none;">
+        <div class="error-message">
+          <svg class="error-icon" viewBox="0 0 24 24">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+          </svg>
+          <span id="error-text">An error occurred while calculating your mortgage. Please try again.</span>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Insert the HTML into the block
+  block.innerHTML = calculatorHTML;
+  
+  // Initialize the mortgage calculator functionality
+  const calculator = new MortgageCalculator();
+}
+
 class MortgageCalculator {
   constructor() {
     this.graphqlEndpoint = 'https://publish-p147324-e1509924.adobeaemcloud.com/graphql/execute.json/global/mortgageFixed';
@@ -27,17 +141,53 @@ class MortgageCalculator {
       closeResultsBtn.addEventListener('click', () => this.hideResults());
     }
 
-    // Input fields for auto-calculation
+    // Input fields for auto-calculation and formatting
     const propertyValueInput = document.getElementById('property-value');
     const mortgageAmountInput = document.getElementById('mortgage-amount');
     
     if (propertyValueInput) {
-      propertyValueInput.addEventListener('input', () => this.updateDeposit());
+      propertyValueInput.addEventListener('input', (e) => {
+        this.formatCurrencyInput(e.target);
+        this.updateDeposit();
+      });
     }
     
     if (mortgageAmountInput) {
-      mortgageAmountInput.addEventListener('input', () => this.updateDeposit());
+      mortgageAmountInput.addEventListener('input', (e) => {
+        this.formatCurrencyInput(e.target);
+        this.updateDeposit();
+      });
     }
+  }
+
+  formatCurrencyInput(input) {
+    // Remove all non-numeric characters except decimal point
+    let value = input.value.replace(/[^\d.]/g, '');
+    
+    // Ensure only one decimal point
+    const parts = value.split('.');
+    if (parts.length > 2) {
+      value = parts[0] + '.' + parts.slice(1).join('');
+    }
+    
+    // Convert to number and validate maximum value
+    const number = parseFloat(value) || 0;
+    
+    // Check maximum value (1,000,000)
+    if (number > 1000000) {
+      input.value = '1,000,000';
+      return;
+    }
+    
+    // Format with commas if valid
+    if (number > 0) {
+      input.value = number.toLocaleString();
+    } else {
+      input.value = '';
+    }
+    
+    // Trigger deposit calculation update
+    this.updateDeposit();
   }
 
   setupAutoCalculation() {
@@ -46,8 +196,12 @@ class MortgageCalculator {
   }
 
   updateDeposit() {
-    const propertyValue = parseFloat(document.getElementById('property-value').value) || 0;
-    const mortgageAmount = parseFloat(document.getElementById('mortgage-amount').value) || 0;
+    const propertyValueInput = document.getElementById('property-value');
+    const mortgageAmountInput = document.getElementById('mortgage-amount');
+    
+    // Get values and clean them (remove commas and other non-numeric characters)
+    const propertyValue = parseFloat(propertyValueInput.value.replace(/[^\d.]/g, '')) || 0;
+    const mortgageAmount = parseFloat(mortgageAmountInput.value.replace(/[^\d.]/g, '')) || 0;
     const depositAmount = propertyValue - mortgageAmount;
     
     const depositInput = document.getElementById('deposit-amount');
@@ -57,9 +211,14 @@ class MortgageCalculator {
   }
 
   async calculateMortgage() {
-    const propertyValue = parseFloat(document.getElementById('property-value').value);
-    const mortgageAmount = parseFloat(document.getElementById('mortgage-amount').value);
-    const mortgageTerm = parseInt(document.getElementById('mortgage-term').value);
+    const propertyValueInput = document.getElementById('property-value');
+    const mortgageAmountInput = document.getElementById('mortgage-amount');
+    const mortgageTermInput = document.getElementById('mortgage-term');
+    
+    // Get values and clean them (remove commas and other non-numeric characters)
+    const propertyValue = parseFloat(propertyValueInput.value.replace(/[^\d.]/g, '')) || 0;
+    const mortgageAmount = parseFloat(mortgageAmountInput.value.replace(/[^\d.]/g, '')) || 0;
+    const mortgageTerm = parseInt(mortgageTermInput.value.replace(/[^\d]/g, '')) || 0;
 
     // Validation
     if (!this.validateInputs(propertyValue, mortgageAmount, mortgageTerm)) {
@@ -96,8 +255,18 @@ class MortgageCalculator {
       return false;
     }
 
+    if (propertyValue > 1000000) {
+      this.showError('Property value cannot exceed £1,000,000.');
+      return false;
+    }
+
     if (!mortgageAmount || mortgageAmount <= 0) {
       this.showError('Please enter a valid mortgage amount.');
+      return false;
+    }
+
+    if (mortgageAmount > 1000000) {
+      this.showError('Mortgage amount cannot exceed £1,000,000.');
       return false;
     }
 
@@ -119,23 +288,23 @@ class MortgageCalculator {
       // Calculate LTV (Loan to Value)
       const ltv = (mortgageAmount / propertyValue) * 100;
       
-      // Prepare GraphQL query parameters
-      const queryParams = {
-        propertyValue: propertyValue,
-        mortgageAmount: mortgageAmount,
-        mortgageTerm: mortgageTerm,
-        ltv: ltv
-      };
+      // Prepare query parameters for GET request
+      const queryParams = new URLSearchParams({
+        propertyValue: propertyValue.toString(),
+        mortgageAmount: mortgageAmount.toString(),
+        mortgageTerm: mortgageTerm.toString(),
+        ltv: ltv.toFixed(2)
+      });
 
-      // Make request to GraphQL endpoint
-      const response = await fetch(this.graphqlEndpoint, {
-        method: 'POST',
+      // Build the full URL with query parameters
+      const url = `${this.graphqlEndpoint}?${queryParams.toString()}`;
+
+      // Make GET request to GraphQL endpoint
+      const response = await fetch(url, {
+        method: 'GET',
         headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: this.buildGraphQLQuery(queryParams)
-        })
+          'Accept': 'application/json',
+        }
       });
 
       if (!response.ok) {
@@ -143,6 +312,10 @@ class MortgageCalculator {
       }
 
       const data = await response.json();
+      
+      // Debug logging
+      console.log('API Response:', data);
+      console.log('Request URL:', url);
       
       // Process and return mortgage options
       return this.processMortgageOptions(data, ltv);
@@ -154,39 +327,10 @@ class MortgageCalculator {
     }
   }
 
-  buildGraphQLQuery(params) {
-    // Build GraphQL query based on the endpoint requirements
-    return `
-      query GetMortgageOptions($propertyValue: Float!, $mortgageAmount: Float!, $mortgageTerm: Int!, $ltv: Float!) {
-        mortgageOptions(
-          propertyValue: $propertyValue
-          mortgageAmount: $mortgageAmount
-          mortgageTerm: $mortgageTerm
-          ltv: $ltv
-        ) {
-          id
-          title
-          interestRate
-          rateType
-          ratePeriod
-          followOnRate
-          aprc
-          productFee
-          maxLoanToValue
-          earlyRepaymentCharge
-          monthlyPayment
-          features
-          ctaText
-          ctaLink
-        }
-      }
-    `;
-  }
-
   processMortgageOptions(data, ltv) {
-    // Process the GraphQL response data
-    if (data && data.data && data.data.mortgageOptions) {
-      return data.data.mortgageOptions.filter(option => {
+    // Process the response data from GET request
+    if (data && data.mortgageOptions) {
+      return data.mortgageOptions.filter(option => {
         // Filter options based on LTV requirements
         const maxLTV = parseFloat(option.maxLoanToValue.replace('%', ''));
         return ltv <= maxLTV;
@@ -196,9 +340,20 @@ class MortgageCalculator {
         const rateB = parseFloat(b.interestRate.replace('%', ''));
         return rateA - rateB;
       });
+    } else if (data && Array.isArray(data)) {
+      // Handle case where response is directly an array
+      return data.filter(option => {
+        const maxLTV = parseFloat(option.maxLoanToValue.replace('%', ''));
+        return ltv <= maxLTV;
+      }).sort((a, b) => {
+        const rateA = parseFloat(a.interestRate.replace('%', ''));
+        const rateB = parseFloat(b.interestRate.replace('%', ''));
+        return rateA - rateB;
+      });
     }
     
-    // Return fallback options if no data
+    // Return fallback options if no data or unexpected format
+    console.log('No mortgage options found in response, using fallback options');
     return this.getFallbackMortgageOptions(ltv);
   }
 
@@ -369,8 +524,11 @@ class MortgageCalculator {
 
   calculateSpecificOption(optionId) {
     // Calculate specific mortgage option
-    const mortgageAmount = parseFloat(document.getElementById('mortgage-amount').value);
-    const mortgageTerm = parseInt(document.getElementById('mortgage-term').value);
+    const mortgageAmountInput = document.getElementById('mortgage-amount');
+    const mortgageTermInput = document.getElementById('mortgage-term');
+    
+    const mortgageAmount = parseFloat(mortgageAmountInput.value.replace(/[^\d.]/g, '')) || 0;
+    const mortgageTerm = parseInt(mortgageTermInput.value.replace(/[^\d]/g, '')) || 0;
     
     if (mortgageAmount && mortgageTerm) {
       // This could call a more specific calculation API
@@ -422,12 +580,18 @@ class MortgageCalculator {
   }
 }
 
-// Initialize mortgage calculator when DOM is loaded
+// Make the calculator available globally for onclick handlers
+window.mortgageCalculator = null;
+
+// Initialize mortgage calculator when DOM is loaded (for standalone use)
 document.addEventListener('DOMContentLoaded', function() {
-  window.mortgageCalculator = new MortgageCalculator();
+  // Only initialize if not already initialized by decorate function
+  if (!window.mortgageCalculator) {
+    window.mortgageCalculator = new MortgageCalculator();
+  }
 });
 
 // Export for use in other modules
 if (typeof module !== 'undefined' && module.exports) {
-  module.exports = MortgageCalculator;
+  module.exports = { decorate, MortgageCalculator };
 } 

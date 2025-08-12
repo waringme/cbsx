@@ -135,102 +135,9 @@
                 <p>The calculator will call the GraphQL endpoint to fetch real mortgage options based on your criteria.</p>
             </div>
             
-            <!-- Mortgage Calculator Block -->
+            <!-- Mortgage Calculator Block - HTML will be rendered by JavaScript -->
             <div class="mortgage-calculator-block">
-                <div class="calculator-container">
-                    <div class="calculator-header">
-                        <h3>Mortgage calculator</h3>
-                        <p>Calculate your monthly mortgage payments and find the right deal for you</p>
-                    </div>
-                    
-                    <div class="calculator-form">
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="property-value">Property value</label>
-                                <div class="input-wrapper">
-                                    <span class="currency-symbol">£</span>
-                                    <input type="number" id="property-value" placeholder="0" min="0" step="1000">
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="mortgage-amount">Mortgage amount</label>
-                                <div class="input-wrapper">
-                                    <span class="currency-symbol">£</span>
-                                    <input type="number" id="mortgage-amount" placeholder="0" min="0" step="1000">
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-row">
-                            <div class="form-group">
-                                <label for="mortgage-term">Mortgage term (1-40 years)</label>
-                                <div class="input-wrapper">
-                                    <input type="number" id="mortgage-term" placeholder="25" min="1" max="40">
-                                    <span class="unit">Years</span>
-                                </div>
-                            </div>
-                            
-                            <div class="form-group">
-                                <label for="deposit-amount">Deposit amount</label>
-                                <div class="input-wrapper">
-                                    <span class="currency-symbol">£</span>
-                                    <input type="number" id="deposit-amount" placeholder="0" min="0" step="1000" readonly>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-actions">
-                            <button type="button" class="calculate-btn" id="calculate-mortgage">
-                                <span class="btn-text">Calculate monthly payment</span>
-                                <span class="btn-loading" style="display: none;">
-                                    <svg class="spinner" viewBox="0 0 50 50">
-                                        <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
-                                    </svg>
-                                    Calculating...
-                                </span>
-                            </button>
-                        </div>
-                    </div>
-                    
-                    <div class="calculator-results" id="calculator-results" style="display: none;">
-                        <div class="results-header">
-                            <h4>Your mortgage calculation</h4>
-                            <button type="button" class="close-results" id="close-results">×</button>
-                        </div>
-                        
-                        <div class="results-summary">
-                            <div class="summary-item">
-                                <span class="label">Monthly payment:</span>
-                                <span class="value" id="monthly-payment">-</span>
-                            </div>
-                            <div class="summary-item">
-                                <span class="label">Total interest:</span>
-                                <span class="value" id="total-interest">-</span>
-                            </div>
-                            <div class="summary-item">
-                                <span class="label">Total amount payable:</span>
-                                <span class="value" id="total-amount">-</span>
-                            </div>
-                        </div>
-                        
-                        <div class="mortgage-options" id="mortgage-options">
-                            <h5>Available mortgage options</h5>
-                            <div class="options-grid" id="options-grid">
-                                <!-- Mortgage options will be populated here -->
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="calculator-error" id="calculator-error" style="display: none;">
-                        <div class="error-message">
-                            <svg class="error-icon" viewBox="0 0 24 24">
-                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-                            </svg>
-                            <span id="error-text">An error occurred while calculating your mortgage. Please try again.</span>
-                        </div>
-                    </div>
-                </div>
+                <!-- Content will be dynamically rendered by JavaScript -->
             </div>
         </div>
         
@@ -328,5 +235,21 @@
     </div>
     
     <script src="mortgage-calculator.js"></script>
+    <script>
+        // Initialize the mortgage calculator for the demo
+        document.addEventListener('DOMContentLoaded', function() {
+            const calculatorBlock = document.querySelector('.mortgage-calculator-block');
+            if (calculatorBlock) {
+                // Use the decorate function to render the calculator
+                const { decorate } = window;
+                if (decorate) {
+                    decorate(calculatorBlock);
+                } else {
+                    // Fallback: create a new instance directly
+                    window.mortgageCalculator = new MortgageCalculator();
+                }
+            }
+        });
+    </script>
 </body>
 </html> 
