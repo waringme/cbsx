@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mortgage Calculator Demo - CBS Style</title>
+    <link rel="stylesheet" href="mortgage-calculator.css">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .demo-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%);
+            color: white;
+            border-radius: 12px;
+        }
+        
+        .demo-header h1 {
+            margin: 0 0 16px 0;
+            font-size: 36px;
+            font-weight: 700;
+        }
+        
+        .demo-header p {
+            margin: 0;
+            font-size: 18px;
+            opacity: 0.9;
+        }
+        
+        .demo-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .demo-section {
+            margin-bottom: 60px;
+        }
+        
+        .demo-section h2 {
+            color: #1e3a8a;
+            font-size: 24px;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        
+        .demo-description {
+            background-color: white;
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            margin-bottom: 30px;
+        }
+        
+        .demo-description h3 {
+            color: #333;
+            margin: 0 0 16px 0;
+            font-size: 18px;
+        }
+        
+        .demo-description p {
+            margin: 0 0 12px 0;
+            color: #666;
+        }
+        
+        .demo-description ul {
+            margin: 12px 0;
+            padding-left: 20px;
+        }
+        
+        .demo-description li {
+            margin-bottom: 8px;
+            color: #666;
+        }
+        
+        .code-block {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 16px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 16px 0;
+        }
+        
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .feature-card {
+            background-color: white;
+            padding: 24px;
+            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            text-align: center;
+        }
+        
+        .feature-card h4 {
+            color: #1e3a8a;
+            margin: 0 0 16px 0;
+            font-size: 16px;
+        }
+        
+        .feature-card p {
+            color: #666;
+            margin: 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>Mortgage Calculator Block</h1>
+            <p>Professional mortgage calculator with GraphQL integration - CBS Style</p>
+        </div>
+        
+        <div class="demo-section">
+            <h2>Demo</h2>
+            <div class="demo-description">
+                <h3>Interactive Mortgage Calculator</h3>
+                <p>Enter your property details below to calculate mortgage payments and view available options.</p>
+                <p>The calculator will call the GraphQL endpoint to fetch real mortgage options based on your criteria.</p>
+            </div>
+            
+            <!-- Mortgage Calculator Block -->
+            <div class="mortgage-calculator-block">
+                <div class="calculator-container">
+                    <div class="calculator-header">
+                        <h3>Mortgage calculator</h3>
+                        <p>Calculate your monthly mortgage payments and find the right deal for you</p>
+                    </div>
+                    
+                    <div class="calculator-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="property-value">Property value</label>
+                                <div class="input-wrapper">
+                                    <span class="currency-symbol">£</span>
+                                    <input type="number" id="property-value" placeholder="0" min="0" step="1000">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="mortgage-amount">Mortgage amount</label>
+                                <div class="input-wrapper">
+                                    <span class="currency-symbol">£</span>
+                                    <input type="number" id="mortgage-amount" placeholder="0" min="0" step="1000">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="mortgage-term">Mortgage term (1-40 years)</label>
+                                <div class="input-wrapper">
+                                    <input type="number" id="mortgage-term" placeholder="25" min="1" max="40">
+                                    <span class="unit">Years</span>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="deposit-amount">Deposit amount</label>
+                                <div class="input-wrapper">
+                                    <span class="currency-symbol">£</span>
+                                    <input type="number" id="deposit-amount" placeholder="0" min="0" step="1000" readonly>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-actions">
+                            <button type="button" class="calculate-btn" id="calculate-mortgage">
+                                <span class="btn-text">Calculate monthly payment</span>
+                                <span class="btn-loading" style="display: none;">
+                                    <svg class="spinner" viewBox="0 0 50 50">
+                                        <circle class="path" cx="25" cy="25" r="20" fill="none" stroke-width="5"></circle>
+                                    </svg>
+                                    Calculating...
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="calculator-results" id="calculator-results" style="display: none;">
+                        <div class="results-header">
+                            <h4>Your mortgage calculation</h4>
+                            <button type="button" class="close-results" id="close-results">×</button>
+                        </div>
+                        
+                        <div class="results-summary">
+                            <div class="summary-item">
+                                <span class="label">Monthly payment:</span>
+                                <span class="value" id="monthly-payment">-</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="label">Total interest:</span>
+                                <span class="value" id="total-interest">-</span>
+                            </div>
+                            <div class="summary-item">
+                                <span class="label">Total amount payable:</span>
+                                <span class="value" id="total-amount">-</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mortgage-options" id="mortgage-options">
+                            <h5>Available mortgage options</h5>
+                            <div class="options-grid" id="options-grid">
+                                <!-- Mortgage options will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="calculator-error" id="calculator-error" style="display: none;">
+                        <div class="error-message">
+                            <svg class="error-icon" viewBox="0 0 24 24">
+                                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                            </svg>
+                            <span id="error-text">An error occurred while calculating your mortgage. Please try again.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>Features</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <h4>🎯 GraphQL Integration</h4>
+                    <p>Calls the specified GraphQL endpoint to fetch real mortgage options based on user criteria</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🧮 Smart Calculations</h4>
+                    <p>Automatically calculates deposit amount and provides basic mortgage payment calculations</p>
+                </div>
+                <div class="feature-card">
+                    <h4>📱 Responsive Design</h4>
+                    <p>Mobile-first design that works perfectly on all devices and screen sizes</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🎨 CBS Branding</h4>
+                    <p>Matches the Coventry Building Society design aesthetic with professional styling</p>
+                </div>
+                <div class="feature-card">
+                    <h4>⚡ Real-time Updates</h4>
+                    <p>Auto-calculates deposit and provides instant feedback on form validation</p>
+                </div>
+                <div class="feature-card">
+                    <h4>🔄 Fallback Options</h4>
+                    <p>Provides fallback mortgage options if the GraphQL endpoint is unavailable</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>Implementation</h2>
+            <div class="demo-description">
+                <h3>How to Use</h3>
+                <p>This mortgage calculator block can be easily integrated into any AEM page or standalone website:</p>
+                <ol>
+                    <li><strong>Include the CSS:</strong> Add the mortgage-calculator.css file to your page</li>
+                    <li><strong>Include the JavaScript:</strong> Add the mortgage-calculator.js file to your page</li>
+                    <li><strong>Add the HTML:</strong> Copy the HTML structure from mortgage-calculator.html</li>
+                    <li><strong>Customize:</strong> Modify the GraphQL endpoint URL and query structure as needed</li>
+                </ol>
+                
+                <h3>GraphQL Endpoint</h3>
+                <p>The calculator calls the following endpoint to fetch mortgage options:</p>
+                <div class="code-block">https://publish-p147324-e1509924.adobeaemcloud.com/graphql/execute.json/global/mortgageFixed</div>
+                
+                <h3>Key Features</h3>
+                <ul>
+                    <li><strong>Input Validation:</strong> Ensures all inputs are valid before calculation</li>
+                    <li><strong>LTV Calculation:</strong> Automatically calculates Loan-to-Value ratio</li>
+                    <li><strong>Mortgage Filtering:</strong> Filters options based on LTV requirements</li>
+                    <li><strong>Error Handling:</strong> Graceful fallback if GraphQL endpoint fails</li>
+                    <li><strong>Loading States:</strong> Visual feedback during calculations</li>
+                    <li><strong>Responsive Results:</strong> Displays mortgage options in an attractive grid</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="demo-section">
+            <h2>Technical Details</h2>
+            <div class="demo-description">
+                <h3>JavaScript Class Structure</h3>
+                <p>The calculator is built as a JavaScript class with the following key methods:</p>
+                <ul>
+                    <li><code>calculateMortgage()</code> - Main calculation method</li>
+                    <li><code>fetchMortgageOptions()</code> - Calls GraphQL endpoint</li>
+                    <li><code>processMortgageOptions()</code> - Filters and sorts results</li>
+                    <li><code>displayResults()</code> - Shows calculation results</li>
+                    <li><code>validateInputs()</code> - Input validation</li>
+                </ul>
+                
+                <h3>CSS Architecture</h3>
+                <p>The styling uses modern CSS features including:</p>
+                <ul>
+                    <li>CSS Grid for responsive layouts</li>
+                    <li>CSS Custom Properties for consistent theming</li>
+                    <li>Flexbox for component alignment</li>
+                    <li>CSS animations and transitions</li>
+                    <li>Mobile-first responsive design</li>
+                </ul>
+                
+                <h3>Browser Compatibility</h3>
+                <p>Supports all modern browsers including:</p>
+                <ul>
+                    <li>Chrome 60+</li>
+                    <li>Firefox 55+</li>
+                    <li>Safari 12+</li>
+                    <li>Edge 79+</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <script src="mortgage-calculator.js"></script>
+</body>
+</html> 

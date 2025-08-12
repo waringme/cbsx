@@ -198,6 +198,26 @@
       }
     ]
   },
+
+   {
+    "id": "mortgage-calcualtor",
+    "fields": [
+      {
+        "component": "text-input",
+        "name": "text",
+        "value": "",
+        "label": "Slug",
+        "valueType": "string"
+      },
+      {
+        "component": "text-input",
+        "name": "title",
+        "value": "",
+        "label": "Title",
+        "valueType": "string"
+      }
+    ]
+  },
   {
     "id": "fragment",
     "fields": [
