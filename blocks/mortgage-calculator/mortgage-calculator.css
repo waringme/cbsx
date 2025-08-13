@@ -16,18 +16,14 @@
   margin-bottom: 40px;
 }
 
-.calculator-header h3 {
-  font-size: 28px;
-  color: #1e3a8a;
-  margin: 0 0 16px 0;
-  font-weight: 600;
-}
-
 .calculator-header p {
-  font-size: 16px;
-  color: #666;
+  font-size: 18px;
+  color: #6b7280;
+  line-height: 1.6;
   margin: 0;
-  line-height: 1.5;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 /* Form Styles */

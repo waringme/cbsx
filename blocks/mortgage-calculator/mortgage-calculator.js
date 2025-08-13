@@ -16,7 +16,6 @@ export default function decorate(block) {
   const calculatorHTML = `
     <div class="calculator-container">
       <div class="calculator-header">
-        <h3>Mortgage calculator</h3>
         <p>Calculate your monthly mortgage payments and find the right deal for you</p>
       </div>
       
