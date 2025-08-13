@@ -158,6 +158,31 @@
         "label": "Text",
         "valueType": "string"
       }
+      ,
+      {
+        "component": "text",
+        "name": "cta",
+        "value": "",
+        "label": "CTA",
+        "valueType": "string"
+      }
+      ,
+
+      {
+        "component": "text",
+        "name": "link",
+        "value": "",
+        "label": "Link",
+        "valueType": "string"
+      }
+,
+      {
+        "component": "richtext",
+        "name": "text",
+        "value": "",
+        "label": "Text",
+        "valueType": "string"
+      }
     ]
   },
   {

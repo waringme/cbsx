@@ -18,6 +18,12 @@ export default function decorate(block) {
     const optimizedPic = createOptimizedPicture(img.src, img.alt, false, [{ width: '750' }]);
     moveInstrumentation(img, optimizedPic.querySelector('img'));
     img.closest('picture').replaceWith(optimizedPic);
+    
+    // Add button after the image
+    const button = document.createElement('button');
+    button.textContent = 'Learn More';
+    button.className = 'cards-card-button';
+    optimizedPic.parentNode.insertBefore(button, optimizedPic.nextSibling);
   });
   block.textContent = '';
   block.append(ul);
